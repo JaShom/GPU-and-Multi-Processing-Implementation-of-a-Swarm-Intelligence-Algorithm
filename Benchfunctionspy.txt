@@ -1,0 +1,27 @@
+Schwefel 1.2:
+
+def function(x):
+    x = np.array(x)
+    return np.sum([np.sum(x[:i]) ** 2
+                   for i in range(len(x))])
+-------------------------------------------------
+Rastrigin:
+
+def function(x):
+    x = np.array(x)
+    return 10 * len(x) + (x ** 2 - 10 * np.cos(2 * np.pi * x)).sum()
+-------------------------------------------------
+Rosenbrock:
+
+def function(x):
+    x = np.array(x)
+    return np.sum([((1. - x[i]) ** 2)
+                    + (100 * (x[i + 1] - x[i] ** 2) ** 2)
+                    for i in range(len(x) - 1)])
+-------------------------------------------------
+Schewefel 2.21:
+
+def function(x):
+    x = np.array(x)
+    return np.max(np.abs(x))
+-------------------------------------------------
