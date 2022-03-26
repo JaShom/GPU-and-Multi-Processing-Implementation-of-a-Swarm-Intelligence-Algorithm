@@ -32,12 +32,131 @@ from time import perf_counter
 # FITNESS FUNCTION (SPHERE FUNCTION)
 #@jit(nopython=True)
 counter1 = 0
+
+
 @jit(target_backend = "cuda")
-def f(x):  # x IS A VECTOR REPRESENTING ONE FLY
+def f(x):  # x IS A VECTOR REPRESENTING ONE FLY, SPHERE FUNCTION
     sum = 0.0
     for i in range(len(x)):
         sum = sum + np.power(x[i], 2)
     return sum
+
+def rastrigin(x):  # RastriginFunction
+    sums = 0.0
+    for i in range(len(x)):
+        sums += x[i] ** 2 - (10 * np.cos(2 * np.pi * x[i])) + 10
+    return sums
+
+
+def schwefel_1_2(x):  # ∈ [−100,100]
+    # x = np.array(x)
+    sums = 0.0
+    for i in range(len(x)):
+        sums = sums + (sums + x[i] ** 2)
+    return sums
+
+
+#    return np.sum([np.sum(x[:i]) ** 2
+#                   for i in range(len(x))])
+
+
+def rosenbrock(x):  # ∈ [-5, 10] but may be restricted to [-2.048, 2.048]
+    sums = 0.0
+    for i in range(len(x)-1):
+        xn = x[i + 1]
+        new = 100 * np.power(xn - np.power(x[i], 2), 2) + np.power(x[i] - 1, 2)
+        sums = sums + new
+    return sums
+
+
+def ackley(x, a=20, b=0.2, c=2 * np.pi):  # ∈ [-32.768, 32.768], may be restricted to a smaller domain
+    sum1 = 0.0
+    sum2 = 0.0
+    for i in range(len(x)):
+        sum1 = sum1 + np.power(x[i], 2)
+        sum2 = sum2 + np.cos(c * x[i])
+    part1 = -a * np.exp(-b * (np.sqrt(1 / sum1)))# / x[i])))
+    part2 = -np.exp(1 / sum2)# / x[i])
+    return part1 + part2 + a + np.exp(1)
+
+
+def ackleyRedo(x):
+    for i in range(x):
+        part1 = - 20 * np.exp(- 0.2 * np.sqrt(np.power(x[i], 2) / x[i]))
+        part2 = - np.exp(np.cos(2 * np.pi * x[i]))
+    return part1 + part2 + 20 + np.exp(1)
+
+def ackley_fun(x):
+    """Ackley function
+    Domain: -32 < xi < 32
+    Global minimum: f_min(0,..,0)=0
+    """
+    return -20 * np.exp(-.2*np.sqrt(.5*(x[0]**2 + x[1]**2))) - np.exp(.5*(np.cos(np.pi*2*x[0])+np.cos(np.pi*2*x[1]))) + np.exp(1) + 20
+
+
+
+def griewank(x):  # ∈ [-600, 600]
+    # sums = 0.0
+    # prod = 1
+    # for i in range(len(x)):
+    #     sums = sums + np.power(x[i], 2) / 4000
+    #     prod = prod * np.cos(x[i]/np.sqrt(i))
+    # return sums - prod + 1
+    p1 = 0
+    for i in range(len(x)):
+        p1 += x[i]**2
+        p2 = 1
+    for i in range(len(x)):
+        p2 *= np.cos(float(x[i]/np.sqrt(i+1)))
+    return 1 + (float(p1)/4000.0) - float(p2)
+
+
+def goldstein(x):  # ∈ [-2, 2]
+    x1 = x[0]
+    x2 = x[1]
+    for i in range(len(x)):
+        eq1 = 1 + (np.power(x1 + x2 + 1, 2))(19 - 14*x2 + 6*x1*x2 + 3*np.power(x2, 2))
+        eq2 = 30 + np.power((2*x1 - 3*x2, 2))(18 - 32*x1 + 12*np.power(x1, 2) + 48*x2 - 36*x1*x2 + 27*np.power(x2,2))
+        return eq1*eq2
+
+    return
+
+
+def camel6(x):  # x1 ∈ [-3, 3], x2 ∈ [-2, 2]
+    x1 = x[i,0]
+    x2 = x[i,1]
+    part1 = (4 - 2.1 * np.power(x1, 2) + (np.power(x1, 4)/3)) * np.power(x1, 2)
+    part2 = x1 * x2
+    part3 = (- 4 + 4 * np.power(x2, 2))
+    return
+
+def shiftedRastrigin(x):
+    return
+
+
+def shiftedRotatedRastrigin(x):
+    return
+
+
+def lunaceksBiRastrigin(x): # prep for death
+    sum = 0.0
+    sum1 = 0.0
+    sum2 = 0.0
+    s = 1 - (1 / (2 * np.sqrt(len(x) + 20) - 8.2))
+    d = 1
+    mu = 2.5
+    mu1 = - np.sqrt(abs((mu**2 - d) / s))
+    for i in range(len(x)):
+        sum += (x[i] - mu)**2
+        sum1 += (x[i] - mu1)**2
+        sum2 += 1 - np.cos(2 * np.pi * (x[i] - mu))
+    return min(sum, d * len(x) + s * sum1) + 10 * sum2
+
+
+def schafferN06(x):  # prep for death
+    return
+
+
 lis = []
 t0= perf_counter()
 for i in range(30):
