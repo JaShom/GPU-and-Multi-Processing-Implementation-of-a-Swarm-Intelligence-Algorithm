@@ -42,14 +42,14 @@ counter1 = 0
 
 
 @jit(target_backend="cuda")
-def f(x):  # x IS A VECTOR REPRESENTING ONE FLY, SPHEREFUNCTION
+def Sphere(x):  # x IS A VECTOR REPRESENTING ONE FLY, SPHEREFUNCTION
     sums = 0.0
     for i in range(len(x)):
         sums = sums + np.power(x[i], 2)
     return sums
 
 
-def rastrigin(x):  # RastriginFunction
+def rastrigin(x):  # RastriginFunction ∈ [-5.12, 5.12]
     sums = 0.0
     for i in range(len(x)):
         sums += x[i] ** 2 - (10 * np.cos(2 * np.pi * x[i])) + 10
@@ -77,40 +77,41 @@ def rosenbrock(x):  # ∈ [-5, 10] but may be restricted to [-2.048, 2.048]
     return sums
 
 
-def ackley(x, a=20, b=0.2, c=2 * np.pi):  # ∈ [-32.768, 32.768], may be restricted to a smaller domain
-    sum1 = 0.0
-    sum2 = 0.0
-    for i in range(len(x)):
-        sum1 = sum1 + np.power(x[i], 2)
-        sum2 = sum2 + np.cos(c * x[i])
-    part1 = -a * np.exp(-b * (np.sqrt(1 / sum1)))  # / x[i])))
-    part2 = -np.exp(1 / sum2)  # / x[i])
-    return part1 + part2 + a + np.exp(1)
-
-
-def ackleyRedo(x):
-    for i in range(x):
-        part1 = - 20 * np.exp(- 0.2 * np.sqrt(np.power(x[i], 2) / x[i]))
-        part2 = - np.exp(np.cos(2 * np.pi * x[i]))
-    return part1 + part2 + 20 + np.exp(1)
-
-
-def ackley_fun(x):
-    """Ackley function
-    Domain: -32 < xi < 32
-    Global minimum: f_min(0,..,0)=0
-    """
-    return -20 * np.exp(-.2 * np.sqrt(.5 * (x[0] ** 2 + x[1] ** 2))) - np.exp(
-        .5 * (np.cos(np.pi * 2 * x[0]) + np.cos(np.pi * 2 * x[1]))) + np.exp(1) + 20
+# def ackley(x, a=20, b=0.2, c=2 * np.pi):  # ∈ [-32.768, 32.768], may be restricted to a smaller domain
+#     sum1 = 0.0
+#     sum2 = 0.0
+#     for i in range(len(x)):
+#         sum1 = sum1 + np.power(x[i], 2)
+#         sum2 = sum2 + np.cos(c * x[i])
+#     part1 = -a * np.exp(-b * (np.sqrt(1 / sum1)))  # / x[i])))
+#     part2 = -np.exp(1 / sum2)  # / x[i])
+#     return part1 + part2 + a + np.exp(1)
+#
+#
+# def ackleyRedo(x):
+#     for i in range(x):
+#         part1 = - 20 * np.exp(- 0.2 * np.sqrt(np.power(x[i], 2) / x[i]))
+#         part2 = - np.exp(np.cos(2 * np.pi * x[i]))
+#     return part1 + part2 + 20 + np.exp(1)
+#
+#
+# def ackley_fun(x):
+#     """Ackley function
+#     Domain: -32 < xi < 32
+#     Global minimum: f_min(0,..,0)=0
+#     """
+#     return -20 * np.exp(-.2 * np.sqrt(.5 * (x[0] ** 2 + x[1] ** 2))) - np.exp(
+#         .5 * (np.cos(np.pi * 2 * x[0]) + np.cos(np.pi * 2 * x[1]))) + np.exp(1) + 20
 
 def finalAckley(x):
     sum = 0.0
     sum2 = 0.0
     for c in x:
-        sum += c**2.0
+        sum += c ** 2.0
         sum2 += np.cos(2.0 * np.pi * c)
     n = float(len(x))
-    return -20.0 * np.exp(-0.2 * np.sqrt(sum/n)) - np.exp(sum2/n) + 20 + np.exp(1)
+    return -20.0 * np.exp(-0.2 * np.sqrt(sum / n)) - np.exp(sum2 / n) + 20 + np.exp(1)
+
 
 def griewank(x):  # ∈ [-600, 600]
     # sums = 0.0
@@ -128,9 +129,29 @@ def griewank(x):  # ∈ [-600, 600]
     return 1 + (float(p1) / 4000.0) - float(p2)
 
 
+def shekel(x):  # ∈ [0, 10]
+    m = 10
+    t = [1, 2, 2, 4, 4, 6, 3, 7, 5, 5]
+    b = (e * 0.1 for e in t)#* t)
+    C = [4.0, 1.0, 8.0, 6.0, 3.0, 2.0, 5.0, 8.0, 6.0, 7.0,
+         4.0, 1.0, 8.0, 6.0, 7.0, 9.0, 3.0, 1.0, 2.0, 3.6,
+         4.0, 1.0, 8.0, 6.0, 3.0, 2.0, 5.0, 8.0, 6.0, 7.0,
+         4.0, 1.0, 8.0, 6.0, 7.0, 9.0, 3.0, 1.0, 2.0, 3.6]
+    outersum = 0
+    for i in range(m):
+        bi = b[i]
+        innersum = 0
+        for j in range(4):
+            xj = x[j]
+            Cji = C[j, i]
+            innersum = innersum + (np.power(xj - Cji, 2))
+        outersum = outersum + 1 / (innersum + bi)
+    return -outersum
+
+
 def goldstein(x):  # ∈ [-2, 2]
     x1 = x[0]
-    x2 = x[1]
+    x2 = x[(i + 1) % len(x)]
     for i in range(len(x)):
         eq1 = 1 + (np.power(x1 + x2 + 1, 2))(19 - 14 * x2 + 6 * x1 * x2 + 3 * np.power(x2, 2))
         eq2 = 30 + np.power((2 * x1 - 3 * x2, 2))(
@@ -140,6 +161,9 @@ def goldstein(x):  # ∈ [-2, 2]
     return
 
 
+def goldsteinAid(i, x):
+    return
+
 def camel6(x):  # x1 ∈ [-3, 3], x2 ∈ [-2, 2]
     x1 = x[i, 0]
     x2 = x[i, 1]
@@ -148,17 +172,8 @@ def camel6(x):  # x1 ∈ [-3, 3], x2 ∈ [-2, 2]
     part3 = (- 4 + 4 * np.power(x2, 2))
     return
 
-
-def shiftedRastrigin(x):
-    sum = 0.0
-    for i in range(len(x)):
-        sum = sum + (np.power(x[i], 2) - 10 * np.cos(2 * np.pi * x[i]) + 10)
-    return sum
-
-
-def shiftedRotatedRastrigin(x):
+def camel6Aid(i, x):
     return
-
 
 def lunaceksBiRastrigin(x):  # prep for death
     sum = 0.0
@@ -193,16 +208,23 @@ def schafferAid(i, x):
     return 0.5 + (np.sin(np.sqrt(xysqrd)) - 0.5) / (1 + 0.001 * xysqrd) ** 2
 
 
+def shiftedRastrigin(x):
+    sum = 0.0
+    for i in range(len(x)):
+        sum = sum + (np.power(x[i], 2) - 10 * np.cos(2 * np.pi * x[i]) + 10)
+    return sum
+
+
 lis = []
 t0 = perf_counter()
 
 t2 = perf_counter()
 N = 100  # POPULATION SIZE
-D = 30  # DIMENSIONALITY
+D = 4  # DIMENSIONALITY
 delta = 0.001  # DISTURBANCE THRESHOLD
 maxIterations = 3100  # ITERATIONS ALLOWED
-lowerB = [-32] * D  # LOWER BOUND (IN ALL DIMENSIONS)
-upperB = [32] * D  # UPPER BOUND (IN ALL DIMENSIONS)
+lowerB = [0] * D  # LOWER BOUND (IN ALL DIMENSIONS)
+upperB = [10] * D  # UPPER BOUND (IN ALL DIMENSIONS)
 
 for i in range(30):
     counter1 += 1
@@ -219,7 +241,7 @@ for i in range(30):
     # MAIN DFO LOOP
     for itr in range(maxIterations):
         for i in range(N):  # EVALUATION
-            fitness[i] = finalAckley(X[i,])
+            fitness[i] = goldstein(X[i,])
         s = np.argmin(fitness)  # FIND BEST FLY
 
         if (itr % 100 == 0):  # PRINT BEST FLY EVERY 100 ITERATIONS
