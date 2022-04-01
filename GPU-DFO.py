@@ -29,6 +29,7 @@ Mohammad Majid al-Rifaie (2014), Dispersive Flies Optimisation, Proceedings of t
 import numpy as np
 from numba import jit, cuda
 from time import perf_counter
+import tensorflow as tf
 
 import warnings
 
@@ -41,6 +42,7 @@ import warnings
 counter1 = 0
 
 
+# with tf.device('/GPU:0'):
 @jit(target_backend="cuda")
 def Sphere(x):  # x IS A VECTOR REPRESENTING ONE FLY, SPHEREFUNCTION
     sums = 0.0
@@ -49,6 +51,7 @@ def Sphere(x):  # x IS A VECTOR REPRESENTING ONE FLY, SPHEREFUNCTION
     return sums
 
 
+@jit(target_backend="gpu")
 def rastrigin(x):  # RastriginFunction ∈ [-5.12, 5.12]
     sums = 0.0
     for i in range(len(x)):
@@ -56,6 +59,7 @@ def rastrigin(x):  # RastriginFunction ∈ [-5.12, 5.12]
     return sums
 
 
+@jit(target_backend="gpu")
 def schwefel_1_2(x):  # ∈ [−100,100]
     # x = np.array(x)
     sums = 0.0
@@ -64,10 +68,7 @@ def schwefel_1_2(x):  # ∈ [−100,100]
     return sums
 
 
-#    return np.sum([np.sum(x[:i]) ** 2
-#                   for i in range(len(x))])
-
-
+@jit(target_backend="gpu")
 def rosenbrock(x):  # ∈ [-5, 10] but may be restricted to [-2.048, 2.048]
     sums = 0.0
     for i in range(len(x) - 1):
@@ -77,33 +78,8 @@ def rosenbrock(x):  # ∈ [-5, 10] but may be restricted to [-2.048, 2.048]
     return sums
 
 
-# def ackley(x, a=20, b=0.2, c=2 * np.pi):  # ∈ [-32.768, 32.768], may be restricted to a smaller domain
-#     sum1 = 0.0
-#     sum2 = 0.0
-#     for i in range(len(x)):
-#         sum1 = sum1 + np.power(x[i], 2)
-#         sum2 = sum2 + np.cos(c * x[i])
-#     part1 = -a * np.exp(-b * (np.sqrt(1 / sum1)))  # / x[i])))
-#     part2 = -np.exp(1 / sum2)  # / x[i])
-#     return part1 + part2 + a + np.exp(1)
-#
-#
-# def ackleyRedo(x):
-#     for i in range(x):
-#         part1 = - 20 * np.exp(- 0.2 * np.sqrt(np.power(x[i], 2) / x[i]))
-#         part2 = - np.exp(np.cos(2 * np.pi * x[i]))
-#     return part1 + part2 + 20 + np.exp(1)
-#
-#
-# def ackley_fun(x):
-#     """Ackley function
-#     Domain: -32 < xi < 32
-#     Global minimum: f_min(0,..,0)=0
-#     """
-#     return -20 * np.exp(-.2 * np.sqrt(.5 * (x[0] ** 2 + x[1] ** 2))) - np.exp(
-#         .5 * (np.cos(np.pi * 2 * x[0]) + np.cos(np.pi * 2 * x[1]))) + np.exp(1) + 20
-
-def finalAckley(x):
+@jit(target_backend="gpu")
+def finalAckley(x):  # ∈ [-32.768, 32.768]
     sum = 0.0
     sum2 = 0.0
     for c in x:
@@ -113,13 +89,8 @@ def finalAckley(x):
     return -20.0 * np.exp(-0.2 * np.sqrt(sum / n)) - np.exp(sum2 / n) + 20 + np.exp(1)
 
 
+@jit(target_backend="gpu")
 def griewank(x):  # ∈ [-600, 600]
-    # sums = 0.0
-    # prod = 1
-    # for i in range(len(x)):
-    #     sums = sums + np.power(x[i], 2) / 4000
-    #     prod = prod * np.cos(x[i]/np.sqrt(i))
-    # return sums - prod + 1
     p1 = 0
     for i in range(len(x)):
         p1 += x[i] ** 2
@@ -129,53 +100,55 @@ def griewank(x):  # ∈ [-600, 600]
     return 1 + (float(p1) / 4000.0) - float(p2)
 
 
-def shekel(x):  # ∈ [0, 10]
-    m = 10
-    t = [1, 2, 2, 4, 4, 6, 3, 7, 5, 5]
-    b = (e * 0.1 for e in t)#* t)
-    C = [4.0, 1.0, 8.0, 6.0, 3.0, 2.0, 5.0, 8.0, 6.0, 7.0,
-         4.0, 1.0, 8.0, 6.0, 7.0, 9.0, 3.0, 1.0, 2.0, 3.6,
-         4.0, 1.0, 8.0, 6.0, 3.0, 2.0, 5.0, 8.0, 6.0, 7.0,
-         4.0, 1.0, 8.0, 6.0, 7.0, 9.0, 3.0, 1.0, 2.0, 3.6]
-    outersum = 0
-    for i in range(m):
-        bi = b[i]
-        innersum = 0
-        for j in range(4):
-            xj = x[j]
-            Cji = C[j, i]
-            innersum = innersum + (np.power(xj - Cji, 2))
-        outersum = outersum + 1 / (innersum + bi)
-    return -outersum
-
-
+@jit(target_backend="gpu")
 def goldstein(x):  # ∈ [-2, 2]
-    x1 = x[0]
-    x2 = x[(i + 1) % len(x)]
-    for i in range(len(x)):
-        eq1 = 1 + (np.power(x1 + x2 + 1, 2))(19 - 14 * x2 + 6 * x1 * x2 + 3 * np.power(x2, 2))
-        eq2 = 30 + np.power((2 * x1 - 3 * x2, 2))(
-            18 - 32 * x1 + 12 * np.power(x1, 2) + 48 * x2 - 36 * x1 * x2 + 27 * np.power(x2, 2))
-        return eq1 * eq2
+    if len(x) <= 2:
+        return goldsteinAid(0, x)
+    else:
+        total = 0
+        for i in range(len(x)):
+            total += x[i] * \
+                     goldsteinAid(i, x)
+    return total
 
-    return
 
-
+@jit(target_backend="gpu")
 def goldsteinAid(i, x):
-    return
+    x1 = x[i]
+    x2 = x[(i + 1) % len(x)]
+    eq1a = np.power(x1 + x2 + 1, 2)
+    eq1b = 19 - 14 * x1 + 3 * np.power(x1, 2) - 14 * x2 + 6 * x1 * x2 + 3 * np.power(x2, 2)
+    eq1 = 1 + eq1a * eq1b
+    eq2a = np.power(2 * x1 - 3 * x2, 2)
+    eq2b = 18 - 32 * x1 + 12 * np.power(x1, 2) + 48 * x2 - 36 * x1 * x2 + 27 * np.power(x2, 2)
+    eq2 = 30 + eq2a * eq2b
+    return eq1 * eq2
 
+
+@jit(target_backend="gpu")
 def camel6(x):  # x1 ∈ [-3, 3], x2 ∈ [-2, 2]
-    x1 = x[i, 0]
-    x2 = x[i, 1]
+    if len(x) <= 2:
+        return camel6Aid(0, x)
+    else:
+        total = 0
+        for i in range(len(x)):
+            total += x[i] * \
+                     camel6Aid(i, x)
+        return total
+
+
+@jit(target_backend="gpu")
+def camel6Aid(i, x):
+    x1 = x[i]
+    x2 = x[(i + 1) % len(x)]
     part1 = (4 - 2.1 * np.power(x1, 2) + (np.power(x1, 4) / 3)) * np.power(x1, 2)
     part2 = x1 * x2
     part3 = (- 4 + 4 * np.power(x2, 2))
-    return
+    return part1 + part2 + part3
 
-def camel6Aid(i, x):
-    return
 
-def lunaceksBiRastrigin(x):  # prep for death
+@jit(target_backend="gpu")
+def lunaceksBiRastrigin(x):  # prep for death # ∈ [-5.12,5.12]
     sum = 0.0
     sum1 = 0.0
     sum2 = 0.0
@@ -190,6 +163,7 @@ def lunaceksBiRastrigin(x):  # prep for death
     return min(sum, d * len(x) + s * sum1) + 10 * sum2
 
 
+@jit(target_backend="gpu")
 def schafferN06(x):  # prep for death
     if len(x) <= 2:
         return schafferAid(0, x)
@@ -201,6 +175,7 @@ def schafferN06(x):  # prep for death
         return total
 
 
+@jit(target_backend="gpu")
 def schafferAid(i, x):
     x1 = x[i]
     y1 = x[(i + 1) % len(x)]
@@ -208,6 +183,7 @@ def schafferAid(i, x):
     return 0.5 + (np.sin(np.sqrt(xysqrd)) - 0.5) / (1 + 0.001 * xysqrd) ** 2
 
 
+@jit(target_backend="gpu")
 def shiftedRastrigin(x):
     sum = 0.0
     for i in range(len(x)):
@@ -219,12 +195,14 @@ lis = []
 t0 = perf_counter()
 
 t2 = perf_counter()
+
+t1_start = perf_counter()
 N = 100  # POPULATION SIZE
-D = 4  # DIMENSIONALITY
+D = 30  # DIMENSIONALITY
 delta = 0.001  # DISTURBANCE THRESHOLD
 maxIterations = 3100  # ITERATIONS ALLOWED
-lowerB = [0] * D  # LOWER BOUND (IN ALL DIMENSIONS)
-upperB = [10] * D  # UPPER BOUND (IN ALL DIMENSIONS)
+lowerB = [-100] * D  # LOWER BOUND (IN ALL DIMENSIONS)
+upperB = [100] * D  # UPPER BOUND (IN ALL DIMENSIONS)
 
 for i in range(30):
     counter1 += 1
@@ -241,7 +219,7 @@ for i in range(30):
     # MAIN DFO LOOP
     for itr in range(maxIterations):
         for i in range(N):  # EVALUATION
-            fitness[i] = goldstein(X[i,])
+            fitness[i] = Sphere(X[i,])
         s = np.argmin(fitness)  # FIND BEST FLY
 
         if (itr % 100 == 0):  # PRINT BEST FLY EVERY 100 ITERATIONS
@@ -269,9 +247,12 @@ for i in range(30):
                 if X[i, d] < lowerB[d] or X[i, d] > upperB[d]:
                     X[i, d] = np.random.uniform(lowerB[d], upperB[d])
 
-    for i in range(N): fitness[i] = f(X[i,])  # EVALUATION
+    for i in range(N): fitness[i] = Sphere(X[i,])  # EVALUATION
     s = np.argmin(fitness)  # FIND BEST FLY
     lis.append(fitness[s])
+
+t1_stop = perf_counter()
+
 t3 = perf_counter()
 print(lis)
 print("\nFinal best fitness:\t", fitness[s])
@@ -279,11 +260,9 @@ print("\nBest fly position:\n", X[s,])
 print("\n1% Time elapsed: ", t3 - t2)
 
 t1 = perf_counter()
-print("\n Time elapsed: ", (t1 - t0) / 60, "mins")
-print("This is the best fly after 30 trials:", lis)
-print("Min = ", min(lis))
-print("Max = ", max(lis))
-print("Median = ", np.median(lis))
-print("Mean = ", np.mean(lis))
-print("Standard deviation = ", np.std(lis))
-print("Counter says ", counter1)
+
+print("\n Time elapsed: ", (t1_stop - t1_start))
+print("This is the best fly after 30 trials:", lis, "\nMin = ", min(lis), "\nMax = ", max(lis), "\nMedian = ",
+      np.median(lis),
+      "\nMean = ", np.mean(lis), "\nStandard deviation = ", np.std(lis), "\nCounter says ", counter1)
+
