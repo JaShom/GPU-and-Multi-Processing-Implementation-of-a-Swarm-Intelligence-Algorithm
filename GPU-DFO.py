@@ -30,9 +30,10 @@ import numpy as np
 from numba import jit, cuda
 from time import perf_counter
 import tensorflow as tf
-
+import matplotlib as plt
 import warnings
-
+# import sigfig
+from math import floor, log10
 # suppress warnings
 # warnings.filterwarnings('ignore')
 
@@ -40,6 +41,19 @@ import warnings
 # FITNESS FUNCTION (SPHERE FUNCTION)
 # @jit(nopython=True)
 counter1 = 0
+
+
+def scientific(x, n):
+    """Represent a float in scientific notation.
+	This function is merely a wrapper around the 'e' type flag in the
+	formatting specification.
+	"""
+    n = int(n)
+    x = float(x)
+
+    if n < 1: raise ValueError("1+ significant digits required.")
+
+    return ''.join(('{:.', str(n - 1), 'e}')).format(x)
 
 
 # with tf.device('/GPU:0'):
@@ -201,8 +215,8 @@ N = 100  # POPULATION SIZE
 D = 30  # DIMENSIONALITY
 delta = 0.001  # DISTURBANCE THRESHOLD
 maxIterations = 3100  # ITERATIONS ALLOWED
-lowerB = [-100] * D  # LOWER BOUND (IN ALL DIMENSIONS)
-upperB = [100] * D  # UPPER BOUND (IN ALL DIMENSIONS)
+lowerB = [-5.12] * D  # LOWER BOUND (IN ALL DIMENSIONS)
+upperB = [5.12] * D  # UPPER BOUND (IN ALL DIMENSIONS)
 
 for i in range(30):
     counter1 += 1
@@ -219,7 +233,7 @@ for i in range(30):
     # MAIN DFO LOOP
     for itr in range(maxIterations):
         for i in range(N):  # EVALUATION
-            fitness[i] = Sphere(X[i,])
+            fitness[i] = rastrigin(X[i,])
         s = np.argmin(fitness)  # FIND BEST FLY
 
         if (itr % 100 == 0):  # PRINT BEST FLY EVERY 100 ITERATIONS
@@ -247,7 +261,7 @@ for i in range(30):
                 if X[i, d] < lowerB[d] or X[i, d] > upperB[d]:
                     X[i, d] = np.random.uniform(lowerB[d], upperB[d])
 
-    for i in range(N): fitness[i] = Sphere(X[i,])  # EVALUATION
+    for i in range(N): fitness[i] = rastrigin(X[i,])  # EVALUATION
     s = np.argmin(fitness)  # FIND BEST FLY
     lis.append(fitness[s])
 
@@ -262,7 +276,9 @@ print("\n1% Time elapsed: ", t3 - t2)
 t1 = perf_counter()
 
 print("\n Time elapsed: ", (t1_stop - t1_start))
-print("This is the best fly after 30 trials:", lis, "\nMin = ", min(lis), "\nMax = ", max(lis), "\nMedian = ",
+print("This is the best fly after 30 trials:", lis, f"\nMin = ", min(lis), "\nMax = ", max(lis), "\nMedian = ",
       np.median(lis),
       "\nMean = ", np.mean(lis), "\nStandard deviation = ", np.std(lis), "\nCounter says ", counter1)
-
+fmean = np.mean(lis)
+standardDev = np.std(lis)
+print("Mean: ", scientific(fmean, 3), "Standard deviation: ", scientific(standardDev, 3))

@@ -27,11 +27,12 @@ Mohammad Majid al-Rifaie (2014), Dispersive Flies Optimisation, Proceedings of t
 """
 
 import numpy as np
-# import matplotlib as plt
+import matplotlib as plt
 import pandas as pd
 from time import perf_counter
 import multiprocessing
 import concurrent.futures
+
 
 # FITNESS FUNCTION (SPHERE FUNCTION)
 def f(x):  # x IS A VECTOR REPRESENTING ONE FLY
@@ -41,63 +42,66 @@ def f(x):  # x IS A VECTOR REPRESENTING ONE FLY
     return sum
 
 
-N = 100  # POPULATION SIZE
-D = 30  # DIMENSIONALITY
-delta = 0.001  # DISTURBANCE THRESHOLD
-maxIterations = 3100  # ITERATIONS ALLOWED
-lowerB = [-100] * D  # LOWER BOUND (IN ALL DIMENSIONS)
-upperB = [100] * D  # UPPER BOUND (IN ALL DIMENSIONS)
+def multi():
+    N = 100  # POPULATION SIZE
+    D = 30  # DIMENSIONALITY
+    delta = 0.001  # DISTURBANCE THRESHOLD
+    maxIterations = 3100  # ITERATIONS ALLOWED
+    lowerB = [-100] * D  # LOWER BOUND (IN ALL DIMENSIONS)
+    upperB = [100] * D  # UPPER BOUND (IN ALL DIMENSIONS)
 
-t1_start = perf_counter()
-# INITIALISATION PHASE
-X = np.empty([N, D])  # EMPTY FLIES ARRAY OF SIZE: (N,D)
-fitness = [None] * N  # EMPTY FITNESS ARRAY OF SIZE N
+    t1_start = perf_counter()
+    # INITIALISATION PHASE
+    X = np.empty([N, D])  # EMPTY FLIES ARRAY OF SIZE: (N,D)
+    fitness = [None] * N  # EMPTY FITNESS ARRAY OF SIZE N
 
-# INITIALISE FLIES WITHIN BOUNDS
-for i in range(N):
-    for d in range(D):
-        X[i, d] = np.random.uniform(lowerB[d], upperB[d])
-
-# MAIN DFO LOOP
-for itr in range(maxIterations):
-    for i in range(N):  # EVALUATION
-        fitness[i] = f(X[i,])
-    s = np.argmin(fitness)  # FIND BEST FLY
-
-    if (itr % 100 == 0):  # PRINT BEST FLY EVERY 100 ITERATIONS
-        print("Iteration:", itr, "\tBest fly index:", s,
-              "\tFitness value:", fitness[s])
-
-    # TAKE EACH FLY INDIVIDUALLY
+    # INITIALISE FLIES WITHIN BOUNDS
     for i in range(N):
-        if i == s: continue  # ELITIST STRATEGY
+        for d in range(D):
+            X[i, d] = np.random.uniform(lowerB[d], upperB[d])
 
-        # FIND BEST NEIGHBOUR
-        left = (i - 1) % N
-        right = (i + 1) % N
-        bNeighbour = right if fitness[right] < fitness[left] else left
+    # MAIN DFO LOOP
+    for itr in range(maxIterations):
+        for i in range(N):  # EVALUATION
+            fitness[i] = f(X[i,])
+        s = np.argmin(fitness)  # FIND BEST FLY
 
-        for d in range(D):  # UPDATE EACH DIMENSION SEPARATELY
-            if (np.random.rand() < delta):
-                X[i, d] = np.random.uniform(lowerB[d], upperB[d])
-                continue;
+        if (itr % 100 == 0):  # PRINT BEST FLY EVERY 100 ITERATIONS
+            print("Iteration:", itr, "\tBest fly index:", s,
+                  "\tFitness value:", fitness[s])
 
-            u = np.random.rand()
-            X[i, d] = X[bNeighbour, d] + u * (X[s, d] - X[i, d])
+        # TAKE EACH FLY INDIVIDUALLY
+        for i in range(N):
+            if i == s: continue  # ELITIST STRATEGY
 
-            # OUT OF BOUND CONTROL
-            if X[i, d] < lowerB[d] or X[i, d] > upperB[d]:
-                X[i, d] = np.random.uniform(lowerB[d], upperB[d])
+            # FIND BEST NEIGHBOUR
+            left = (i - 1) % N
+            right = (i + 1) % N
+            bNeighbour = right if fitness[right] < fitness[left] else left
 
-for i in range(N): fitness[i] = f(X[i,])  # EVALUATION
-s = np.argmin(fitness)  # FIND BEST FLY
-t1_stop = perf_counter()
-print("\nFinal best fitness:\t", fitness[s])
-print("\nBest fly position:\n", X[s,])
-print("Time elapsed:", t1_stop - t1_start)
-minimum = X[s,].min()
-maximum = X[s,].max()
-Fmean = X[s,].mean()
-standardDev = X[s,].std()
-print("The min is: ", minimum, "\nThe Max is: ", maximum, "\nThe Mean is: ", Fmean, "\nThe Standard Deviation is: ",
-      standardDev)
+            for d in range(D):  # UPDATE EACH DIMENSION SEPARATELY
+                if (np.random.rand() < delta):
+                    X[i, d] = np.random.uniform(lowerB[d], upperB[d])
+                    continue;
+
+                u = np.random.rand()
+                X[i, d] = X[bNeighbour, d] + u * (X[s, d] - X[i, d])
+
+                # OUT OF BOUND CONTROL
+                if X[i, d] < lowerB[d] or X[i, d] > upperB[d]:
+                    X[i, d] = np.random.uniform(lowerB[d], upperB[d])
+
+    for i in range(N): fitness[i] = f(X[i,])  # EVALUATION
+    s = np.argmin(fitness)  # FIND BEST FLY
+    t1_stop = perf_counter()
+
+
+    print("\nFinal best fitness:\t", fitness[s])
+    print("\nBest fly position:\n", X[s,])
+    print("Time elapsed:", t1_stop - t1_start)
+    minimum = X[s,].min()
+    maximum = X[s,].max()
+    Fmean = X[s,].mean()
+    standardDev = X[s,].std()
+    print("The min is: ", minimum, "\nThe Max is: ", maximum, "\nThe Mean is: ", Fmean, "\nThe Standard Deviation is: ",
+          standardDev)
