@@ -30,8 +30,21 @@ import numpy as np
 import matplotlib as plt
 import pandas as pd
 from time import perf_counter
-import multiprocessing
+import multiprocessing as mp
 import concurrent.futures
+
+
+def scientific(x, n):
+    # """Represent a float in scientific notation.
+    # This function is merely a wrapper around the 'e' type flag in the
+    # formatting specification.
+    # """
+    n = int(n)
+    x = float(x)
+
+    if n < 1: raise ValueError("1+ significant digits required.")
+
+    return ''.join(('{:.', str(n - 1), 'e}')).format(x)
 
 
 # FITNESS FUNCTION (SPHERE FUNCTION)
@@ -42,14 +55,19 @@ def f(x):  # x IS A VECTOR REPRESENTING ONE FLY
     return sum
 
 
-def multi():
-    N = 100  # POPULATION SIZE
-    D = 30  # DIMENSIONALITY
-    delta = 0.001  # DISTURBANCE THRESHOLD
-    maxIterations = 3100  # ITERATIONS ALLOWED
-    lowerB = [-100] * D  # LOWER BOUND (IN ALL DIMENSIONS)
-    upperB = [100] * D  # UPPER BOUND (IN ALL DIMENSIONS)
+t0 = perf_counter()
+lis = []
 
+N = 100  # POPULATION SIZE
+D = 30  # DIMENSIONALITY
+delta = 0.001  # DISTURBANCE THRESHOLD
+maxIterations = 3100  # ITERATIONS ALLOWED
+lowerB = [-100] * D  # LOWER BOUND (IN ALL DIMENSIONS)
+upperB = [100] * D  # UPPER BOUND (IN ALL DIMENSIONS)
+
+
+def multi():
+    global lis
     t1_start = perf_counter()
     # INITIALISATION PHASE
     X = np.empty([N, D])  # EMPTY FLIES ARRAY OF SIZE: (N,D)
@@ -66,7 +84,7 @@ def multi():
             fitness[i] = f(X[i,])
         s = np.argmin(fitness)  # FIND BEST FLY
 
-        if (itr % 100 == 0):  # PRINT BEST FLY EVERY 100 ITERATIONS
+        if itr % 100 == 0:  # PRINT BEST FLY EVERY 100 ITERATIONS
             print("Iteration:", itr, "\tBest fly index:", s,
                   "\tFitness value:", fitness[s])
 
@@ -80,9 +98,9 @@ def multi():
             bNeighbour = right if fitness[right] < fitness[left] else left
 
             for d in range(D):  # UPDATE EACH DIMENSION SEPARATELY
-                if (np.random.rand() < delta):
+                if np.random.rand() < delta:
                     X[i, d] = np.random.uniform(lowerB[d], upperB[d])
-                    continue;
+                    continue
 
                 u = np.random.rand()
                 X[i, d] = X[bNeighbour, d] + u * (X[s, d] - X[i, d])
@@ -93,8 +111,8 @@ def multi():
 
     for i in range(N): fitness[i] = f(X[i,])  # EVALUATION
     s = np.argmin(fitness)  # FIND BEST FLY
+    lis.append(fitness[s])
     t1_stop = perf_counter()
-
 
     print("\nFinal best fitness:\t", fitness[s])
     print("\nBest fly position:\n", X[s,])
@@ -105,3 +123,22 @@ def multi():
     standardDev = X[s,].std()
     print("The min is: ", minimum, "\nThe Max is: ", maximum, "\nThe Mean is: ", Fmean, "\nThe Standard Deviation is: ",
           standardDev)
+
+
+if __name__ == "__main__":
+    processes = []
+    for _ in range(30):
+        p1 = mp.Process(target=multi)
+        p1.start()
+        processes.append(p1)
+    for process in processes:
+        process.join()
+    t1 = perf_counter()
+    print("Time elapsed:", t1 - t0)
+    print(lis)
+    print("This is the best fly after 30 trials:", lis, f"\nMin = ", min(lis), "\nMax = ", max(lis), "\nMedian = ",
+          np.median(lis),
+          "\nMean = ", np.mean(lis), "\nStandard deviation = ", np.std(lis), "\nCounter says ", count)
+    fmean = np.mean(lis)
+    standardDev = np.std(lis)
+    print("Mean: ", scientific(fmean, 3), "Standard deviation: ", scientific(standardDev, 3))

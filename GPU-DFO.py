@@ -34,6 +34,7 @@ import matplotlib as plt
 import warnings
 # import sigfig
 from math import floor, log10
+
 # suppress warnings
 # warnings.filterwarnings('ignore')
 
@@ -44,10 +45,10 @@ counter1 = 0
 
 
 def scientific(x, n):
-    """Represent a float in scientific notation.
-	This function is merely a wrapper around the 'e' type flag in the
-	formatting specification.
-	"""
+    # """Represent a float in scientific notation.
+    # This function is merely a wrapper around the 'e' type flag in the
+    # formatting specification.
+    # """
     n = int(n)
     x = float(x)
 
@@ -93,7 +94,7 @@ def rosenbrock(x):  # ∈ [-5, 10] but may be restricted to [-2.048, 2.048]
 
 
 @jit(target_backend="gpu")
-def finalAckley(x):  # ∈ [-32.768, 32.768]
+def ackley(x):  # ∈ [-32.768, 32.768]
     sum = 0.0
     sum2 = 0.0
     for c in x:
@@ -201,7 +202,8 @@ def schafferAid(i, x):
 def shiftedRastrigin(x):
     sum = 0.0
     for i in range(len(x)):
-        sum = sum + (np.power(x[i], 2) - 10 * np.cos(2 * np.pi * x[i]) + 10)
+        #        z = x[i] * 0.0512
+        sum = sum + ((np.power(x[i], 2)) - 10 * np.cos(2 * np.pi * x[i]) + (10 - 0.0512))
     return sum
 
 
@@ -212,11 +214,11 @@ t2 = perf_counter()
 
 t1_start = perf_counter()
 N = 100  # POPULATION SIZE
-D = 30  # DIMENSIONALITY
+D = 2  # DIMENSIONALITY
 delta = 0.001  # DISTURBANCE THRESHOLD
 maxIterations = 3100  # ITERATIONS ALLOWED
-lowerB = [-5.12] * D  # LOWER BOUND (IN ALL DIMENSIONS)
-upperB = [5.12] * D  # UPPER BOUND (IN ALL DIMENSIONS)
+lowerB = [-100] * D  # LOWER BOUND (IN ALL DIMENSIONS)
+upperB = [100] * D  # UPPER BOUND (IN ALL DIMENSIONS)
 
 for i in range(30):
     counter1 += 1
@@ -233,10 +235,10 @@ for i in range(30):
     # MAIN DFO LOOP
     for itr in range(maxIterations):
         for i in range(N):  # EVALUATION
-            fitness[i] = rastrigin(X[i,])
+            fitness[i] = schafferN06(X[i,])
         s = np.argmin(fitness)  # FIND BEST FLY
 
-        if (itr % 100 == 0):  # PRINT BEST FLY EVERY 100 ITERATIONS
+        if itr % 100 == 0:  # PRINT BEST FLY EVERY 100 ITERATIONS
             print("Iteration:", itr, "\tBest fly index:", s,
                   "\tFitness value:", fitness[s])
 
@@ -250,7 +252,7 @@ for i in range(30):
             bNeighbour = right if fitness[right] < fitness[left] else left
 
             for d in range(D):  # UPDATE EACH DIMENSION SEPARATELY
-                if (np.random.rand() < delta):
+                if np.random.rand() < delta:
                     X[i, d] = np.random.uniform(lowerB[d], upperB[d])
                     continue;
 
@@ -261,7 +263,7 @@ for i in range(30):
                 if X[i, d] < lowerB[d] or X[i, d] > upperB[d]:
                     X[i, d] = np.random.uniform(lowerB[d], upperB[d])
 
-    for i in range(N): fitness[i] = rastrigin(X[i,])  # EVALUATION
+    for i in range(N): fitness[i] = schafferN06(X[i,])  # EVALUATION
     s = np.argmin(fitness)  # FIND BEST FLY
     lis.append(fitness[s])
 

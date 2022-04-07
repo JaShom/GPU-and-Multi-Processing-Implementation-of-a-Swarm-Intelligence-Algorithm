@@ -81,7 +81,10 @@ def rosenbrock(x):  # ∈ [-5, 10] but may be restricted to [-2.048, 2.048]
     return sums
 
 
-def finalAckley(x):  # ∈ [-32.768, 32.768]
+# Check if value are correct later. Mean was a bit large at least 45 min wait time tho.
+
+
+def ackley(x):  # ∈ [-32.768, 32.768]
     sum = 0.0
     sum2 = 0.0
     for c in x:
@@ -190,10 +193,10 @@ N = 100  # POPULATION SIZE
 D = 30  # DIMENSIONALITY
 delta = 0.001  # DISTURBANCE THRESHOLD
 maxIterations = 3100  # ITERATIONS ALLOWED
-lowerB = [-100] * D  # LOWER BOUND (IN ALL DIMENSIONS)
-upperB = [100] * D  # UPPER BOUND (IN ALL DIMENSIONS)
+lowerB = [-2.048] * D  # LOWER BOUND (IN ALL DIMENSIONS)
+upperB = [2.048] * D  # UPPER BOUND (IN ALL DIMENSIONS)
 
-for i in range(30):
+for i in range(1):
     count += 1
     print(f'This is trial {count}')
     # INITIALISATION PHASE
@@ -211,7 +214,7 @@ for i in range(30):
             fitness[i] = Sphere(X[i,])
         s = np.argmin(fitness)  # FIND BEST FLY
 
-        if (itr % 100 == 0):  # PRINT BEST FLY EVERY 100 ITERATIONS
+        if itr % 100 == 0:  # PRINT BEST FLY EVERY 100 ITERATIONS
             print("Iteration:", itr, "\tBest fly index:", s,
                   "\tFitness value:", fitness[s])
 
@@ -225,9 +228,9 @@ for i in range(30):
             bNeighbour = right if fitness[right] < fitness[left] else left
 
             for d in range(D):  # UPDATE EACH DIMENSION SEPARATELY
-                if (np.random.rand() < delta):
+                if np.random.rand() < delta:
                     X[i, d] = np.random.uniform(lowerB[d], upperB[d])
-                    continue;
+                    continue
 
                 u = np.random.rand()
                 X[i, d] = X[bNeighbour, d] + u * (X[s, d] - X[i, d])
@@ -256,6 +259,6 @@ print("\n Time elapsed: ", (t1_stop - t1_start))
 print("This is the best fly after 30 trials:", lis, "\nMin = ", min(lis), "\nMax = ", max(lis), "\nMedian = ",
       np.median(lis),
       "\nMean = ", np.mean(lis), "\nStandard deviation = ", np.std(lis), "\nCounter says ", count)
-fmean = np.mean(lis)
+fimean = np.mean(lis)
 standardDev = np.std(lis)
-print("Mean: ", scientific(fmean, 3), "Standard deviation: ", scientific(standardDev, 3))
+print("Mean: ", scientific(fimean, 3), "Standard deviation: ", scientific(standardDev, 3))
