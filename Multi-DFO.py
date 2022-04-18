@@ -31,7 +31,10 @@ import matplotlib as plt
 import pandas as pd
 from time import perf_counter
 import multiprocessing as mp
+from multiprocessing import pool
 import concurrent.futures
+import os
+import sys
 
 
 def scientific(x, n):
@@ -48,7 +51,7 @@ def scientific(x, n):
 
 
 # FITNESS FUNCTION (SPHERE FUNCTION)
-def f(x):  # x IS A VECTOR REPRESENTING ONE FLY
+def Sphere(x):  # x IS A VECTOR REPRESENTING ONE FLY
     sum = 0.0
     for i in range(len(x)):
         sum = sum + np.power(x[i], 2)
@@ -56,8 +59,8 @@ def f(x):  # x IS A VECTOR REPRESENTING ONE FLY
 
 
 t0 = perf_counter()
+file = open("MultiFitness.txt", "r+")
 lis = []
-
 N = 100  # POPULATION SIZE
 D = 30  # DIMENSIONALITY
 delta = 0.001  # DISTURBANCE THRESHOLD
@@ -67,7 +70,7 @@ upperB = [100] * D  # UPPER BOUND (IN ALL DIMENSIONS)
 
 
 def multi():
-    global lis
+
     t1_start = perf_counter()
     # INITIALISATION PHASE
     X = np.empty([N, D])  # EMPTY FLIES ARRAY OF SIZE: (N,D)
@@ -81,7 +84,7 @@ def multi():
     # MAIN DFO LOOP
     for itr in range(maxIterations):
         for i in range(N):  # EVALUATION
-            fitness[i] = f(X[i,])
+            fitness[i] = Sphere(X[i,])
         s = np.argmin(fitness)  # FIND BEST FLY
 
         if itr % 100 == 0:  # PRINT BEST FLY EVERY 100 ITERATIONS
@@ -109,10 +112,17 @@ def multi():
                 if X[i, d] < lowerB[d] or X[i, d] > upperB[d]:
                     X[i, d] = np.random.uniform(lowerB[d], upperB[d])
 
-    for i in range(N): fitness[i] = f(X[i,])  # EVALUATION
+    for i in range(N): fitness[i] = Sphere(X[i,])  # EVALUATION
     s = np.argmin(fitness)  # FIND BEST FLY
     lis.append(fitness[s])
+    finalResults = mp.Queue.get(lis)
+    # for line in file:
+    #     file.write(str(lis))
+    #     file.close()
     t1_stop = perf_counter()
+    # file1 = fitness[s]
+    # with open("MultiFitness.csv", "w") as f:
+    #     f.append(float(file1))
 
     print("\nFinal best fitness:\t", fitness[s])
     print("\nBest fly position:\n", X[s,])

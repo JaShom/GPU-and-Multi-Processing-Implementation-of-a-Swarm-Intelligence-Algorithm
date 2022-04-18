@@ -27,6 +27,7 @@ Mohammad Majid al-Rifaie (2014), Dispersive Flies Optimisation, Proceedings of t
 """
 
 import numpy as np
+import cupy as cp
 from numba import jit, cuda
 from time import perf_counter
 import tensorflow as tf
@@ -58,7 +59,7 @@ def scientific(x, n):
 
 
 # with tf.device('/GPU:0'):
-@jit(target_backend="cuda")
+@jit(parallel=True)  # target_backend="cuda")
 def Sphere(x):  # x IS A VECTOR REPRESENTING ONE FLY, SPHEREFUNCTION
     sums = 0.0
     for i in range(len(x)):
@@ -202,11 +203,12 @@ def schafferAid(i, x):
 def shiftedRastrigin(x):
     sum = 0.0
     for i in range(len(x)):
-        #        z = x[i] * 0.0512
-        sum = sum + ((np.power(x[i], 2)) - 10 * np.cos(2 * np.pi * x[i]) + (10 - 0.0512))
+        nx = (x[i] * 0.0512) - x[i]
+        sum = sum + ((np.power(nx, 2)) - 10 * np.cos(2 * np.pi * nx) + 10)
     return sum
 
 
+#if __name__ == "__main__":
 lis = []
 t0 = perf_counter()
 
@@ -214,7 +216,7 @@ t2 = perf_counter()
 
 t1_start = perf_counter()
 N = 100  # POPULATION SIZE
-D = 2  # DIMENSIONALITY
+D = 30  # DIMENSIONALITY
 delta = 0.001  # DISTURBANCE THRESHOLD
 maxIterations = 3100  # ITERATIONS ALLOWED
 lowerB = [-100] * D  # LOWER BOUND (IN ALL DIMENSIONS)
@@ -235,7 +237,7 @@ for i in range(30):
     # MAIN DFO LOOP
     for itr in range(maxIterations):
         for i in range(N):  # EVALUATION
-            fitness[i] = schafferN06(X[i,])
+            fitness[i] = Sphere(X[i,])
         s = np.argmin(fitness)  # FIND BEST FLY
 
         if itr % 100 == 0:  # PRINT BEST FLY EVERY 100 ITERATIONS
@@ -263,7 +265,7 @@ for i in range(30):
                 if X[i, d] < lowerB[d] or X[i, d] > upperB[d]:
                     X[i, d] = np.random.uniform(lowerB[d], upperB[d])
 
-    for i in range(N): fitness[i] = schafferN06(X[i,])  # EVALUATION
+    for i in range(N): fitness[i] = Sphere(X[i,])  # EVALUATION
     s = np.argmin(fitness)  # FIND BEST FLY
     lis.append(fitness[s])
 
