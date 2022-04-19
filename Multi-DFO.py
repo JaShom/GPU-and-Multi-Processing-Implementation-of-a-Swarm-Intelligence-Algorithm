@@ -148,7 +148,7 @@ if __name__ == "__main__":
     print(lis)
     print("This is the best fly after 30 trials:", lis, f"\nMin = ", min(lis), "\nMax = ", max(lis), "\nMedian = ",
           np.median(lis),
-          "\nMean = ", np.mean(lis), "\nStandard deviation = ", np.std(lis), "\nCounter says ", count)
+          "\nMean = ", np.mean(lis), "\nStandard deviation = ", np.std(lis), "\nCounter says ")  # , count)
     fmean = np.mean(lis)
     standardDev = np.std(lis)
     print("Mean: ", scientific(fmean, 3), "Standard deviation: ", scientific(standardDev, 3))

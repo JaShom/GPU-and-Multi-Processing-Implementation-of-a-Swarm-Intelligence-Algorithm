@@ -31,7 +31,7 @@ import cupy as cp
 from numba import jit, cuda
 from time import perf_counter
 import tensorflow as tf
-import matplotlib as plt
+#  import matplotlib as plt
 import warnings
 # import sigfig
 from math import floor, log10
@@ -59,8 +59,8 @@ def scientific(x, n):
 
 
 # with tf.device('/GPU:0'):
-@jit(parallel=True)  # target_backend="cuda")
-def Sphere(x):  # x IS A VECTOR REPRESENTING ONE FLY, SPHEREFUNCTION
+@jit(target_backend="cuda")  # Using Numba Package, Function is able to run on gpu, speeding computation time
+def Sphere(x):  # x IS A VECTOR REPRESENTING ONE FLY, SPHERE FUNCTION
     sums = 0.0
     for i in range(len(x)):
         sums = sums + np.power(x[i], 2)
@@ -68,7 +68,7 @@ def Sphere(x):  # x IS A VECTOR REPRESENTING ONE FLY, SPHEREFUNCTION
 
 
 @jit(target_backend="gpu")
-def rastrigin(x):  # RastriginFunction ∈ [-5.12, 5.12]
+def rastrigin(x):  # Rastrigin Function ∈ [-5.12, 5.12]
     sums = 0.0
     for i in range(len(x)):
         sums += x[i] ** 2 - (10 * np.cos(2 * np.pi * x[i])) + 10
@@ -76,7 +76,7 @@ def rastrigin(x):  # RastriginFunction ∈ [-5.12, 5.12]
 
 
 @jit(target_backend="gpu")
-def schwefel_1_2(x):  # ∈ [−100,100]
+def schwefel_1_2(x):  # ∈ [−100,100], Schwefel 1.2 Function
     # x = np.array(x)
     sums = 0.0
     for i in range(len(x)):
@@ -85,7 +85,7 @@ def schwefel_1_2(x):  # ∈ [−100,100]
 
 
 @jit(target_backend="gpu")
-def rosenbrock(x):  # ∈ [-5, 10] but may be restricted to [-2.048, 2.048]
+def rosenbrock(x):  # ∈ [-5, 10] but may be restricted to [-2.048, 2.048], Rosenbrock Function
     sums = 0.0
     for i in range(len(x) - 1):
         xn = x[i + 1]
@@ -95,7 +95,7 @@ def rosenbrock(x):  # ∈ [-5, 10] but may be restricted to [-2.048, 2.048]
 
 
 @jit(target_backend="gpu")
-def ackley(x):  # ∈ [-32.768, 32.768]
+def ackley(x):  # ∈ [-32.768, 32.768], Ackley Function
     sum = 0.0
     sum2 = 0.0
     for c in x:
@@ -106,7 +106,7 @@ def ackley(x):  # ∈ [-32.768, 32.768]
 
 
 @jit(target_backend="gpu")
-def griewank(x):  # ∈ [-600, 600]
+def griewank(x):  # ∈ [-600, 600], Griewank Function
     p1 = 0
     for i in range(len(x)):
         p1 += x[i] ** 2
@@ -117,7 +117,7 @@ def griewank(x):  # ∈ [-600, 600]
 
 
 @jit(target_backend="gpu")
-def goldstein(x):  # ∈ [-2, 2]
+def goldstein(x):  # ∈ [-2, 2], Goldstein Function
     if len(x) <= 2:
         return goldsteinAid(0, x)
     else:
@@ -129,9 +129,9 @@ def goldstein(x):  # ∈ [-2, 2]
 
 
 @jit(target_backend="gpu")
-def goldsteinAid(i, x):
+def goldsteinAid(i, x): # Main component of the Goldstein Function
     x1 = x[i]
-    x2 = x[(i + 1) % len(x)]
+    x2 = x[(i + 1) % len(x)] # Two flies are taken to be used
     eq1a = np.power(x1 + x2 + 1, 2)
     eq1b = 19 - 14 * x1 + 3 * np.power(x1, 2) - 14 * x2 + 6 * x1 * x2 + 3 * np.power(x2, 2)
     eq1 = 1 + eq1a * eq1b
@@ -142,7 +142,7 @@ def goldsteinAid(i, x):
 
 
 @jit(target_backend="gpu")
-def camel6(x):  # x1 ∈ [-3, 3], x2 ∈ [-2, 2]
+def camel6(x):  # x1 ∈ [-3, 3], x2 ∈ [-2, 2], Six-Hump Camel-Back Function
     if len(x) <= 2:
         return camel6Aid(0, x)
     else:
@@ -154,7 +154,7 @@ def camel6(x):  # x1 ∈ [-3, 3], x2 ∈ [-2, 2]
 
 
 @jit(target_backend="gpu")
-def camel6Aid(i, x):
+def camel6Aid(i, x):  # Main component of the Camel-Back Function as 2 flies are also taken
     x1 = x[i]
     x2 = x[(i + 1) % len(x)]
     part1 = (4 - 2.1 * np.power(x1, 2) + (np.power(x1, 4) / 3)) * np.power(x1, 2)
@@ -164,7 +164,7 @@ def camel6Aid(i, x):
 
 
 @jit(target_backend="gpu")
-def lunaceksBiRastrigin(x):  # prep for death # ∈ [-5.12,5.12]
+def lunaceksBiRastrigin(x):  # Lunaceks Bi-Rastrigin Function ∈ [-5.12,5.12]
     sum = 0.0
     sum1 = 0.0
     sum2 = 0.0
@@ -201,14 +201,31 @@ def schafferAid(i, x):
 
 @jit(target_backend="gpu")
 def shiftedRastrigin(x):
-    sum = 0.0
+    summ = 0.0
+    sum1 = 0.0
+    fopt = 100
     for i in range(len(x)):
-        nx = (x[i] * 0.0512) - x[i]
-        sum = sum + ((np.power(nx, 2)) - 10 * np.cos(2 * np.pi * nx) + 10)
-    return sum
+        # nx = (x[i] * 0.0512) - x[i]
+        summ = summ + (np.power(x[i], 2) - 10 * np.cos(2 * np.pi * x[i]) + 10)
+        xopt = 0.0512 * (summ - x[i])
+        # sum = sum + ((np.power(x[i], 2)) - 10 * np.cos(2 * np.pi * nx) + 10)
+    return sum1 + (np.power(xopt, 2) - 10 * np.cos(2 * np.pi * xopt) + 10 + fopt)
 
 
-#if __name__ == "__main__":
+@jit(target_backend="gpu")
+def shiftedRosenbrok(x):
+    sums = 0.0
+    sums1 = 0.0
+    fopt = 100
+    for i in range(len(x) - 1):
+        xn = x[i + 1]
+        new = 100 * np.power(np.power(x[i], 2) - xn, 2) + np.power(x[i] - 1, 2)
+        sums = sums + new
+        xopt = 0.02048 * (sums - x[i]) + 1
+    return sums1 + 100 * np.power(np.power(xopt, 2) - xopt, 2) + np.power(xopt - 1, 2)
+
+
+# if __name__ == "__main__":
 lis = []
 t0 = perf_counter()
 
@@ -219,8 +236,8 @@ N = 100  # POPULATION SIZE
 D = 30  # DIMENSIONALITY
 delta = 0.001  # DISTURBANCE THRESHOLD
 maxIterations = 3100  # ITERATIONS ALLOWED
-lowerB = [-100] * D  # LOWER BOUND (IN ALL DIMENSIONS)
-upperB = [100] * D  # UPPER BOUND (IN ALL DIMENSIONS)
+lowerB = [-2] * D  # LOWER BOUND (IN ALL DIMENSIONS)
+upperB = [2] * D  # UPPER BOUND (IN ALL DIMENSIONS)
 
 for i in range(30):
     counter1 += 1
@@ -237,7 +254,7 @@ for i in range(30):
     # MAIN DFO LOOP
     for itr in range(maxIterations):
         for i in range(N):  # EVALUATION
-            fitness[i] = Sphere(X[i,])
+            fitness[i] = shiftedRosenbrok(X[i,])
         s = np.argmin(fitness)  # FIND BEST FLY
 
         if itr % 100 == 0:  # PRINT BEST FLY EVERY 100 ITERATIONS
@@ -265,7 +282,7 @@ for i in range(30):
                 if X[i, d] < lowerB[d] or X[i, d] > upperB[d]:
                     X[i, d] = np.random.uniform(lowerB[d], upperB[d])
 
-    for i in range(N): fitness[i] = Sphere(X[i,])  # EVALUATION
+    for i in range(N): fitness[i] = shiftedRosenbrok(X[i,])  # EVALUATION
     s = np.argmin(fitness)  # FIND BEST FLY
     lis.append(fitness[s])
 
