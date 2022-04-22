@@ -30,6 +30,8 @@ import numpy as np
 import matplotlib as plt
 import pandas as pd
 from time import perf_counter
+import numba
+from numba import jit, cuda
 import multiprocessing as mp
 from multiprocessing import pool
 import concurrent.futures
@@ -59,8 +61,8 @@ def Sphere(x):  # x IS A VECTOR REPRESENTING ONE FLY
 
 
 t0 = perf_counter()
-file = open("MultiFitness.txt", "r+")
-lis = []
+# file = open("MultiFitness.txt", "r+")
+
 N = 100  # POPULATION SIZE
 D = 30  # DIMENSIONALITY
 delta = 0.001  # DISTURBANCE THRESHOLD
@@ -70,7 +72,7 @@ upperB = [100] * D  # UPPER BOUND (IN ALL DIMENSIONS)
 
 
 def multi():
-
+    lis = []
     t1_start = perf_counter()
     # INITIALISATION PHASE
     X = np.empty([N, D])  # EMPTY FLIES ARRAY OF SIZE: (N,D)
@@ -115,14 +117,16 @@ def multi():
     for i in range(N): fitness[i] = Sphere(X[i,])  # EVALUATION
     s = np.argmin(fitness)  # FIND BEST FLY
     lis.append(fitness[s])
-    finalResults = mp.Queue.get(lis)
+    # finalResults = mp.Queue.get(lis)
     # for line in file:
     #     file.write(str(lis))
     #     file.close()
     t1_stop = perf_counter()
+
     # file1 = fitness[s]
-    # with open("MultiFitness.csv", "w") as f:
-    #     f.append(float(file1))
+    with open("MultiFitness.csv", "a+") as f:
+        f.write(lis, "\n")
+        f.close()
 
     print("\nFinal best fitness:\t", fitness[s])
     print("\nBest fly position:\n", X[s,])
@@ -133,22 +137,28 @@ def multi():
     standardDev = X[s,].std()
     print("The min is: ", minimum, "\nThe Max is: ", maximum, "\nThe Mean is: ", Fmean, "\nThe Standard Deviation is: ",
           standardDev)
+    return lis
+
+
+def getVal(lis):
+    w = lis
+    return w
 
 
 if __name__ == "__main__":
     processes = []
     for _ in range(30):
-        p1 = mp.Process(target=multi)
+        p1 = mp.Process(target=multi,)
         p1.start()
         processes.append(p1)
     for process in processes:
         process.join()
     t1 = perf_counter()
     print("Time elapsed:", t1 - t0)
-    print(lis)
-    print("This is the best fly after 30 trials:", lis, f"\nMin = ", min(lis), "\nMax = ", max(lis), "\nMedian = ",
-          np.median(lis),
-          "\nMean = ", np.mean(lis), "\nStandard deviation = ", np.std(lis), "\nCounter says ")  # , count)
-    fmean = np.mean(lis)
-    standardDev = np.std(lis)
-    print("Mean: ", scientific(fmean, 3), "Standard deviation: ", scientific(standardDev, 3))
+    # print(lis)
+    # print("This is the best fly after 30 trials:", lis, f"\nMin = ", min(lis), "\nMax = ", max(lis), "\nMedian = ",
+    #       np.median(lis),
+    #       "\nMean = ", np.mean(lis), "\nStandard deviation = ", np.std(lis), "\nCounter says ")  # , count)
+    # fmean = np.mean(lis)
+    # standardDev = np.std(lis)
+    # print("Mean: ", scientific(fmean, 3), "Standard deviation: ", scientific(standardDev, 3))

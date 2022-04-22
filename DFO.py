@@ -196,7 +196,7 @@ maxIterations = 3100  # ITERATIONS ALLOWED
 lowerB = [-100] * D  # LOWER BOUND (IN ALL DIMENSIONS)
 upperB = [100] * D  # UPPER BOUND (IN ALL DIMENSIONS)
 
-for i in range(1):
+for i in range(30):
     count += 1
     print(f'This is trial {count}')
     # INITIALISATION PHASE
@@ -211,7 +211,7 @@ for i in range(1):
     # MAIN DFO LOOP
     for itr in range(maxIterations):
         for i in range(N):  # EVALUATION
-            fitness[i] = Sphere(X[i,])
+            fitness[i] = schwefel_1_2(X[i,])
         s = np.argmin(fitness)  # FIND BEST FLY
 
         if itr % 100 == 0:  # PRINT BEST FLY EVERY 100 ITERATIONS
@@ -239,7 +239,7 @@ for i in range(1):
                 if X[i, d] < lowerB[d] or X[i, d] > upperB[d]:
                     X[i, d] = np.random.uniform(lowerB[d], upperB[d])
 
-    for i in range(N): fitness[i] = Sphere(X[i,])  # EVALUATION
+    for i in range(N): fitness[i] = schwefel_1_2(X[i,])  # EVALUATION
     s = np.argmin(fitness)  # FIND BEST FLY
     lis.append(fitness[s])  # Apply 30 best flies into list
 
