@@ -38,8 +38,10 @@ import concurrent.futures
 import os
 import sys
 
+open('MultiFitness.txt', 'w').close()
 
-def scientific(x, n):
+
+def scientific(x, n):  # Taken from https://github.com/corriander/python-sigfig/blob/dev/sigfig/sigfig.py
     # """Represent a float in scientific notation.
     # This function is merely a wrapper around the 'e' type flag in the
     # formatting specification.
@@ -53,6 +55,7 @@ def scientific(x, n):
 
 
 # FITNESS FUNCTION (SPHERE FUNCTION)
+@numba.jit(target_backend='cuda')
 def Sphere(x):  # x IS A VECTOR REPRESENTING ONE FLY
     sum = 0.0
     for i in range(len(x)):
@@ -124,11 +127,12 @@ def multi():
     t1_stop = perf_counter()
 
     # file1 = fitness[s]
-    with open("MultiFitness.csv", "a+") as f:
-        f.write(lis, "\n")
+    with open("MultiFitness.txt", "a+") as f:
+        f.write(f"{fitness[s]}\n")  # :.50f}\n")
         f.close()
 
     print("\nFinal best fitness:\t", fitness[s])
+    print("Testing format here:\t", f'{fitness[s]:.50f}')
     print("\nBest fly position:\n", X[s,])
     print("Time elapsed:", t1_stop - t1_start)
     minimum = X[s,].min()
@@ -148,17 +152,30 @@ def getVal(lis):
 if __name__ == "__main__":
     processes = []
     for _ in range(30):
-        p1 = mp.Process(target=multi,)
+        p1 = mp.Process(target=multi, )
         p1.start()
         processes.append(p1)
     for process in processes:
         process.join()
     t1 = perf_counter()
-    print("Time elapsed:", t1 - t0)
-    # print(lis)
-    # print("This is the best fly after 30 trials:", lis, f"\nMin = ", min(lis), "\nMax = ", max(lis), "\nMedian = ",
-    #       np.median(lis),
-    #       "\nMean = ", np.mean(lis), "\nStandard deviation = ", np.std(lis), "\nCounter says ")  # , count)
-    # fmean = np.mean(lis)
-    # standardDev = np.std(lis)
-    # print("Mean: ", scientific(fmean, 3), "Standard deviation: ", scientific(standardDev, 3))
+    newLis = np.loadtxt('MultiFitness.txt', delimiter="\n")
+
+    # print("Time elapsed:", t1 - t0)
+    # with open("MultiFitness.txt", "r") as ns:
+    #     data = map(float, ns.read().split('\n'))
+    #     print([p for p in data])
+    #     print()
+    # openfile = open('MultiFitness.txt').readlines()
+    # listNum = []
+    # for line in openfile:
+    #     vals = line.split('\n')
+    #     listNum = [vals]
+    #     print(listNum)
+
+    print(newLis)
+    print("This is the best fies after 30 trials:", newLis, f"\nMin = ", min(newLis), "\nMax = ", max(newLis), "\nMedian = ",
+          np.median(newLis),
+          "\nMean = ", np.mean(newLis), "\nStandard deviation = ", np.std(newLis), "\nCounter says ")  # , count)
+    fmean = np.mean(newLis)
+    standardDev = np.std(newLis)
+    print("Mean: ", scientific(fmean, 3), "Standard deviation: ", scientific(standardDev, 3))
