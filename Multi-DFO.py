@@ -27,8 +27,6 @@ Mohammad Majid al-Rifaie (2014), Dispersive Flies Optimisation, Proceedings of t
 """
 
 import numpy as np
-import matplotlib as plt
-import pandas as pd
 from time import perf_counter
 import multiprocessing as mp
 from multiprocessing import pool
