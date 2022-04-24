@@ -26,6 +26,8 @@ Mohammad Majid al-Rifaie (2014), Dispersive Flies Optimisation, Proceedings of t
 	}
 """
 
+# If you do decide to run this to check the time ran, I'd advise you watch a 10-20 min video of something to pass time
+
 import numpy as np
 import matplotlib as plt
 import pandas as pd
