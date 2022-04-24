@@ -20,3 +20,5 @@ conda install concurrent.futures
 
 CUDA version used : 11.6\
 To use pytorch, you will have to make an environment with CUDA version 10.2
+
+I'll drop all my packages in txt fil, no worries
